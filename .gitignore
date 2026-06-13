@@ -14,6 +14,7 @@ build/
 
 # Developer scratch / test scripts (not for repo)
 _test_*.py
+_verify_*.py
 
 # Vendored splunklib bytecode cache (the .py sources go to repo, bytecode doesn't)
 splunk_app/ima/bin/lib/**/__pycache__/
