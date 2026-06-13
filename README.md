@@ -1,8 +1,10 @@
 # Institutional Memory Agent (`ima`)
 
-A Splunk-native agent that watches SOC analyst behavior — which alerts they close, escalate, suppress, and *why* — and turns that accumulated reasoning into a structured, queryable institutional knowledge graph stored in Splunk's KV Store.
+A Splunk-native agent that turns SOC analyst reasoning into a queryable institutional knowledge graph, accessible from SPL, a Python CLI, and a Model Context Protocol server.
 
-The core bet: existing SIEM tooling captures *events*; nobody captures *analyst reasoning*. When a senior analyst leaves, their mental model leaves with them. `ima` keeps it.
+## Why
+
+Existing SIEM tooling captures *events*. Nobody captures *analyst reasoning*. When a senior SOC analyst leaves, their mental model — which alerts are owned by scheduled batch jobs, which executives travel internationally, which subnets host sanctioned pentests — leaves with them. `ima` watches what analysts decide and why, clusters those decisions through a security-tuned LLM, and serves the resulting institutional memory back as a first-class data surface inside Splunk.
 
 ## What it actually does
 
