@@ -78,7 +78,37 @@
         <search>
           <query>| imaquery question="$ima_question$"
 | sort - confidence
-| table topic, summary, evidence_count, confidence, tags</query>
+| table similarity, topic, summary, evidence_count, confidence, tags</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Asset memory: what does the SOC know about an asset?</title>
+      <input type="text" token="ima_asset" searchWhenChanged="true">
+        <label>Asset (substring match)</label>
+        <default>acct-prod-01</default>
+      </input>
+      <table>
+        <search>
+          <query>| imaaboutasset asset="$ima_asset$"
+| table status, alert_id, disposition, reason, topic, summary, confidence, analyst, _time</query>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Live alert stream (synthetic, every 5 min)</title>
+      <table>
+        <search>
+          <query>search sourcetype="ima:alert" earliest=-1h
+| sort - _time
+| table _time, alert_id, event_type, asset, src, severity</query>
         </search>
       </table>
     </panel>

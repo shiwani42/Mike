@@ -17,6 +17,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from . import kvstore
+from .asset_memory import build_asset_card
 from .config import load
 from .llm.foundation_sec import cosine_similarity, embed, extract
 
@@ -131,6 +132,22 @@ def record_annotation(
     }
     key = kvstore.insert(s.kv_annotations, record)
     return {"status": "saved", "_key": key, "alert_id": alert_id, "disposition": disposition}
+
+
+@mcp.tool()
+def query_asset(asset: str) -> dict[str, Any]:
+    """Return the institutional memory card for a specific asset.
+
+    Aggregates every analyst annotation that has touched this asset, the
+    disposition mix, the analysts involved, recent free-text notes, and the
+    relevant clusters in the knowledge graph. Use this when an alert fires on
+    a known asset and you want the SOC's full prior context before triaging.
+
+    Args:
+        asset: asset name or substring - e.g. "acct-prod-01", "laptop-exec-ciso",
+               or just "ciso" to match any asset whose name contains 'ciso'.
+    """
+    return build_asset_card(asset)
 
 
 @mcp.tool()

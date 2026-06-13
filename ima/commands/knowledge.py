@@ -9,6 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from .. import kvstore
+from ..asset_memory import build_asset_card
 from ..config import load
 from ..llm.foundation_sec import cosine_similarity, embed, extract
 
@@ -73,6 +74,65 @@ def _semantic_rank(question: str, rows: list[dict], min_sim: float = 0.4) -> lis
 def _substring_rank(question: str, rows: list[dict]) -> list[tuple[float, dict]]:
     needle = question.lower()
     return [(1.0, r) for r in rows if needle in _row_text(r).lower()]
+
+
+@app.command("about")
+def about(
+    asset: str = typer.Argument(..., help="Asset name, e.g. acct-prod-01"),
+) -> None:
+    """Show the per-asset institutional memory card.
+
+    Aggregates every annotation that touched this asset, plus related knowledge
+    graph entries, into a single 'what does the SOC know about X?' view.
+    """
+    card = build_asset_card(asset)
+    if not card.get("found"):
+        console.print(f"[yellow]No institutional memory for asset {asset!r} yet.[/yellow]")
+        return
+
+    body = (
+        f"[bold cyan]{card['asset']}[/bold cyan]\n"
+        f"  annotations: [bold]{card['annotation_count']}[/bold]    "
+        f"top disposition: [bold]{card['top_disposition']}[/bold]\n"
+        f"  first seen: {card['first_seen']}\n"
+        f"  last seen:  {card['last_seen']}\n"
+    )
+    console.print(Panel(body, title="asset memory", border_style="cyan"))
+
+    if card["dispositions"]:
+        dt = Table("disposition", "count")
+        for d, c in card["dispositions"].items():
+            dt.add_row(d, str(c))
+        console.print(dt)
+
+    if card["analysts"]:
+        at = Table("analyst", "annotations")
+        for a, c in card["analysts"].items():
+            at.add_row(a, str(c))
+        console.print(at)
+
+    if card["recent_annotations"]:
+        rt = Table("created_at", "alert_id", "disposition", "reason", "analyst")
+        for a in card["recent_annotations"]:
+            rt.add_row(
+                a["created_at"][:19],
+                a["alert_id"],
+                a["disposition"],
+                a["reason"][:80],
+                a["analyst"],
+            )
+        console.print(Panel(rt, title="recent annotations", border_style="dim"))
+
+    if card["related_knowledge"]:
+        kt = Table("topic", "evidence", "confidence", "summary")
+        for k in card["related_knowledge"]:
+            kt.add_row(
+                k["topic"],
+                str(k["evidence_count"]),
+                f"{k['confidence']:.2f}",
+                k["summary"][:100],
+            )
+        console.print(Panel(kt, title="related knowledge graph entries", border_style="green"))
 
 
 @app.command("query")

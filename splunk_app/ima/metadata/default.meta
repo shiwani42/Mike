@@ -25,3 +25,6 @@ export = system
 
 [ima_autobuild]
 export = system
+
+[savedsearches]
+export = system

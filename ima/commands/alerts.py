@@ -18,10 +18,12 @@ app = typer.Typer(help="Observe and annotate alerts.")
 console = Console()
 
 DEFAULT_WATCH_SPL = (
-    'search (index=_audit action=alert_fired) OR (index=notable) OR (index=ima_demo) '
-    '| eval alert_id=coalesce(event_id, ss_name."-".strftime(_time,"%s"), _cd) '
-    '| eval event_type=coalesce(search_name, source, sourcetype) '
-    '| table _time, alert_id, event_type, src, dest, severity, _raw'
+    'search (sourcetype="ima:alert") OR (index=_audit action=alert_fired) OR (index=notable) '
+    '| eval alert_id=coalesce(alert_id, event_id, ss_name."-".strftime(_time,"%s"), _cd) '
+    '| eval event_type=coalesce(event_type, search_name, source, sourcetype) '
+    '| eval src=coalesce(src, source_ip) '
+    '| eval dest=coalesce(dest, asset) '
+    '| table _time, alert_id, event_type, asset, src, dest, severity, _raw'
 )
 
 DISPOSITION_KEYS = {

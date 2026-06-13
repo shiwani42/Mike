@@ -58,6 +58,7 @@ After restart, open Splunk Web → Apps → **Institutional Memory Agent** for t
 
 ```spl
 | imaquery question="finance"
+| imaaboutasset asset="acct-prod-01"
 
 | imaannotate alert_id="NOTABLE-2024-09-21" disposition="false_positive" `
               reason="Finance batch job again, Monday 6am" `
