@@ -136,6 +136,13 @@ See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design.
 
 SOAR automates *actions* — block this IP, isolate this endpoint. IMA captures and queries *reasoning* — *why did the senior analyst close this kind of alert as a false positive last quarter?* Complementary surfaces, not substitutes.
 
+## Authors
+
+- **Shiwani Mishra**
+- **Saurabh Gupta**
+
+Both contributed equally to the design and implementation.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

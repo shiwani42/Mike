@@ -6,6 +6,10 @@ build-backend = "setuptools.build_meta"
 name = "ima"
 version = "0.1.0"
 description = "Institutional Memory Agent - a Splunk-native knowledge graph built from SOC analyst behavior."
+authors = [
+    {name = "Shiwani Mishra"},
+    {name = "Saurabh Gupta"},
+]
 requires-python = ">=3.10"
 dependencies = [
     "typer>=0.12",
