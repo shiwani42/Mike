@@ -49,6 +49,4 @@ index=_internal sourcetype=ima:autobuild | head 10
 | imaquery question="finance"
 ```
 
-## Hackathon submission
-
-Built for the Splunk Agentic Ops Hackathon, Security track. See the project root `README.md` for the full architecture and the CLI dev harness.
+See the project root `README.md` for the full architecture and the CLI dev harness.

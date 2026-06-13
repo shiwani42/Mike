@@ -2,8 +2,6 @@
 
 A Splunk-native agent that watches SOC analyst behavior — which alerts they close, escalate, suppress, and *why* — and turns that accumulated reasoning into a structured, queryable institutional knowledge graph stored in Splunk's KV Store.
 
-**Track**: Security  •  **Hackathon**: Splunk Agentic Ops
-
 The core bet: existing SIEM tooling captures *events*; nobody captures *analyst reasoning*. When a senior analyst leaves, their mental model leaves with them. `ima` keeps it.
 
 ## What it actually does
@@ -46,7 +44,7 @@ The bootstrap script creates `.venv`, installs the CLI in editable mode, copies 
 
 ## Install the Splunk app
 
-The CLI is for development. The submission artifact is the **Splunk app** at `splunk_app/ima/`. There's a helper script that handles the elevation, copy, and restart in one shot — open an **Administrator** PowerShell, `cd` into the repo, and run:
+The CLI is the dev harness. The Splunk-native deployment lives at `splunk_app/ima/`. There's a helper script that handles elevation, copy, and restart in one shot — open an **Administrator** PowerShell, `cd` into the repo, and run:
 
 ```powershell
 .\install_splunk_app.ps1
@@ -77,7 +75,7 @@ After restart, open Splunk Web → Apps → **Institutional Memory Agent** for t
 │   ├── kvstore.py                #   KV Store helpers
 │   ├── llm/foundation_sec.py     #   Ollama / Splunk-hosted client
 │   └── commands/                 #   auth, kv, alerts, knowledge, demo
-├── splunk_app/ima/               # Splunk app (submission artifact)
+├── splunk_app/ima/               # Splunk app (production deployment surface)
 │   ├── bin/                      #   3 custom search commands
 │   ├── default/                  #   collections, commands, transforms, dashboard XML
 │   └── README.md

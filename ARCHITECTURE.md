@@ -52,7 +52,7 @@ When a senior SOC analyst with six years of tenure leaves a team, they take with
 | Component | Location | Role |
 |---|---|---|
 | Python CLI | `ima/` package at repo root, installed in `.venv` | Dev iteration — analyst-side `annotate`/`watch`/`query`, batch `build` |
-| Splunk app | `splunk_app/ima/` (copied to `etc/apps/ima/`) | Submission artifact — custom search commands `\| imaannotate`, `\| imabuild`, `\| imaquery`, plus `\| imaping` smoke-test, Simple XML dashboard, vendored splunklib at `bin/lib/` |
+| Splunk app | `splunk_app/ima/` (copied to `etc/apps/ima/`) | Production deployment — custom search commands `\| imaannotate`, `\| imabuild`, `\| imaquery`, plus `\| imaping` smoke-test, Simple XML dashboard, vendored splunklib at `bin/lib/` |
 | MCP server | `ima/mcp_server.py` (run via `ima mcp serve`) | Exposes the knowledge graph as MCP tools for Claude Desktop, SAIA Agent Mode, and any MCP-compatible AI client |
 | Modular Input | `splunk_app/ima/bin/ima_autobuild.py` (enable in Splunk Web) | Autonomous agentic loop: re-runs the cluster + LLM extraction every interval seconds so the knowledge graph stays current without manual intervention |
 | KV Store collections | Splunk instance, `ima` app namespace | Persistence — three collections declared in `collections.conf` |
