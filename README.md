@@ -4,7 +4,7 @@ A Splunk-native agent that turns SOC analyst reasoning into a queryable institut
 
 ## Why
 
-Existing SIEM tooling captures *events*. Nobody captures *analyst reasoning*. When a senior SOC analyst leaves, their mental model — which alerts are owned by scheduled batch jobs, which executives travel internationally, which subnets host sanctioned pentests — leaves with them. `ima` watches what analysts decide and why, clusters those decisions through a security-tuned LLM, and serves the resulting institutional memory back as a first-class data surface inside Splunk.
+Existing SIEM tooling captures *events*. Nobody captures *analyst reasoning*. When a senior SOC analyst leaves, their mental model - which alerts are owned by scheduled batch jobs, which executives travel internationally, which subnets host sanctioned pentests - leaves with them. `ima` watches what analysts decide and why, clusters those decisions through a security-tuned LLM, and serves the resulting institutional memory back as a first-class data surface inside Splunk.
 
 ## What it actually does
 
@@ -23,7 +23,7 @@ new analyst asks         →   | imaquery question="finance Monday"
 about X?"                       bursts every Monday 6am."  conf=1.0  ×3 evidence
 ```
 
-## Quick start (collaborators — read this first)
+## Quick start (collaborators - read this first)
 
 **Prereqs**: Python 3.10+, [Splunk Enterprise](https://www.splunk.com/en_us/download/splunk-enterprise.html) running locally on `:8089`, [Ollama](https://ollama.com) for the local LLM.
 
@@ -46,7 +46,7 @@ The bootstrap script creates `.venv`, installs the CLI in editable mode, copies 
 
 ## Install the Splunk app
 
-The CLI is the dev harness. The Splunk-native deployment lives at `splunk_app/ima/`. There's a helper script that handles elevation, copy, and restart in one shot — open an **Administrator** PowerShell, `cd` into the repo, and run:
+The CLI is the dev harness. The Splunk-native deployment lives at `splunk_app/ima/`. There's a helper script that handles elevation, copy, and restart in one shot - open an **Administrator** PowerShell, `cd` into the repo, and run:
 
 ```powershell
 .\install_splunk_app.ps1
@@ -91,7 +91,7 @@ After restart, open Splunk Web → Apps → **Institutional Memory Agent** for t
 
 ## Expose IMA to external AI agents (MCP)
 
-The same knowledge graph is available as Model Context Protocol tools so any MCP client — Claude Desktop, SAIA Agent Mode, custom agents — can query institutional memory natively.
+The same knowledge graph is available as Model Context Protocol tools so any MCP client - Claude Desktop, SAIA Agent Mode, custom agents - can query institutional memory natively.
 
 Four tools are exposed: `query_knowledge(question)`, `record_annotation(alert_id, disposition, reason, ...)`, `list_recent_annotations(limit)`, `build_knowledge()`.
 
@@ -107,7 +107,7 @@ ima mcp serve
 ima mcp serve --http --port 8765
 ```
 
-**Claude Desktop config** — edit `%APPDATA%\Claude\claude_desktop_config.json` and add:
+**Claude Desktop config** - edit `%APPDATA%\Claude\claude_desktop_config.json` and add:
 
 ```json
 {
@@ -126,17 +126,17 @@ Restart Claude Desktop; the IMA tools become available in any conversation. Ask 
 
 | Splunk surface | How `ima` uses it |
 |---|---|
-| **KV Store** | Three collections — `ima_annotations`, `ima_knowledge`, `ima_assets` — declared in `splunk_app/ima/default/collections.conf` and used as the persistence layer for the knowledge graph. |
-| **Custom Search Commands** (Python SDK 3.0) | `\| imaannotate`, `\| imabuild`, `\| imaquery` — first-class SPL commands so any saved search, dashboard, or analyst can trigger IMA. |
+| **KV Store** | Three collections - `ima_annotations`, `ima_knowledge`, `ima_assets` - declared in `splunk_app/ima/default/collections.conf` and used as the persistence layer for the knowledge graph. |
+| **Custom Search Commands** (Python SDK 3.0) | `\| imaannotate`, `\| imabuild`, `\| imaquery` - first-class SPL commands so any saved search, dashboard, or analyst can trigger IMA. |
 | **Foundation-Sec-1.1-8B** | The extraction prompt + JSON schema target the Splunk-hosted Foundation-Sec model. Local dev runs against an Ollama-hosted Llama-3.1-8B stand-in (no GPU on the dev box); swap to the Splunk-hosted endpoint via a one-line `.env` change. |
 | **Simple XML dashboards** | `ima_overview.xml` gives the SOC a single pane: contributor stats, disposition mix, knowledge table, and an interactive "ask the agent" input. |
-| **MCP Server** | A standalone Python MCP server in `ima/mcp_server.py` exposes four tools (`query_knowledge`, `record_annotation`, `list_recent_annotations`, `build_knowledge`). Run with `ima mcp serve` — Claude Desktop, SAIA Agent Mode, and any MCP client can query institutional memory natively. |
+| **MCP Server** | A standalone Python MCP server in `ima/mcp_server.py` exposes four tools (`query_knowledge`, `record_annotation`, `list_recent_annotations`, `build_knowledge`). Run with `ima mcp serve` - Claude Desktop, SAIA Agent Mode, and any MCP client can query institutional memory natively. |
 
 See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design.
 
 ## Why this isn't a SOAR playbook
 
-SOAR automates *actions* — block this IP, isolate this endpoint. IMA captures and queries *reasoning* — *why did the senior analyst close this kind of alert as a false positive last quarter?* Complementary surfaces, not substitutes.
+SOAR automates *actions* - block this IP, isolate this endpoint. IMA captures and queries *reasoning* - *why did the senior analyst close this kind of alert as a false positive last quarter?* Complementary surfaces, not substitutes.
 
 ## Authors
 
@@ -147,4 +147,4 @@ Both contributed equally to the design and implementation.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

@@ -1,10 +1,10 @@
-# Institutional Memory Agent — Splunk app
+# Institutional Memory Agent - Splunk app
 
 Captures SOC analyst reasoning at scale and turns it into a queryable institutional knowledge graph.
 
 ## Install
 
-1. Copy this `ima/` directory into `C:\Program Files\Splunk\etc\apps\` (you need to do this from an **Administrator** PowerShell window — the sandbox can't reach Program Files).
+1. Copy this `ima/` directory into `C:\Program Files\Splunk\etc\apps\` (you need to do this from an **Administrator** PowerShell window - the sandbox can't reach Program Files).
 
    ```powershell
    Copy-Item -Recurse -Force `
@@ -21,17 +21,17 @@ Captures SOC analyst reasoning at scale and turns it into a queryable institutio
 
 ## What's in the box
 
-- `default/collections.conf` — declares the three KV Store collections (`ima_annotations`, `ima_knowledge`, `ima_assets`). Splunk creates them automatically on startup if they don't exist.
-- `default/commands.conf` — registers three custom search commands (Splunk SPL parser rejects underscores in command names, so no `_` here):
-  - `| imaannotate alert_id="..." disposition="..." reason="..." [asset=...] [analyst=...]` — record an analyst note
-  - `| imabuild` — cluster annotations + call local LLM (Ollama) for structured extraction
-  - `| imaquery question="..."` — retrieve matching institutional knowledge
-- `bin/_ima_common.py` — shared helpers (KV Store wrappers, LLM client). Talks to local Ollama at `http://localhost:11434` by default; override via env vars `IMA_OLLAMA_ENDPOINT` / `IMA_OLLAMA_MODEL`.
-- `default/data/ui/views/ima_overview.xml` — Simple XML dashboard with the knowledge graph, contributor stats, and an interactive "ask the agent" panel.
+- `default/collections.conf` - declares the three KV Store collections (`ima_annotations`, `ima_knowledge`, `ima_assets`). Splunk creates them automatically on startup if they don't exist.
+- `default/commands.conf` - registers three custom search commands (Splunk SPL parser rejects underscores in command names, so no `_` here):
+  - `| imaannotate alert_id="..." disposition="..." reason="..." [asset=...] [analyst=...]` - record an analyst note
+  - `| imabuild` - cluster annotations + call local LLM (Ollama) for structured extraction
+  - `| imaquery question="..."` - retrieve matching institutional knowledge
+- `bin/_ima_common.py` - shared helpers (KV Store wrappers, LLM client). Talks to local Ollama at `http://localhost:11434` by default; override via env vars `IMA_OLLAMA_ENDPOINT` / `IMA_OLLAMA_MODEL`.
+- `default/data/ui/views/ima_overview.xml` - Simple XML dashboard with the knowledge graph, contributor stats, and an interactive "ask the agent" panel.
 
 ## Autonomous knowledge-graph rebuild
 
-The app ships a Modular Input (`bin/ima_autobuild.py`) that runs the cluster + LLM extraction loop on a configurable interval (default 5 min). When enabled, the institutional knowledge graph stays in sync with annotations without any manual `| imabuild` invocation — that's the "agentic ops" loop running inside Splunk.
+The app ships a Modular Input (`bin/ima_autobuild.py`) that runs the cluster + LLM extraction loop on a configurable interval (default 5 min). When enabled, the institutional knowledge graph stays in sync with annotations without any manual `| imabuild` invocation - that's the "agentic ops" loop running inside Splunk.
 
 Enable it from Splunk Web → **Settings → Data inputs → IMA Autobuild → New** (or edit the default stanza and flip `disabled = false`). Status events land in `index=_internal sourcetype=ima:autobuild`:
 
