@@ -88,6 +88,39 @@ After restart, open Splunk Web → Apps → **Institutional Memory Agent** for t
 └── README.md                     # this file
 ```
 
+## Expose IMA to external AI agents (MCP)
+
+The same knowledge graph is available as Model Context Protocol tools so any MCP client — Claude Desktop, SAIA Agent Mode, custom agents — can query institutional memory natively.
+
+Four tools are exposed: `query_knowledge(question)`, `record_annotation(alert_id, disposition, reason, ...)`, `list_recent_annotations(limit)`, `build_knowledge()`.
+
+**Run as a stdio server** (for Claude Desktop / IDE clients):
+
+```powershell
+ima mcp serve
+```
+
+**Run as HTTP** (for remote autonomous agents):
+
+```powershell
+ima mcp serve --http --port 8765
+```
+
+**Claude Desktop config** — edit `%APPDATA%\Claude\claude_desktop_config.json` and add:
+
+```json
+{
+  "mcpServers": {
+    "ima": {
+      "command": "C:\\Users\\shmishra\\Documents\\Splunk_agentic_ops\\Splunk_agentic_ops\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "ima.cli", "mcp", "serve"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop; the IMA tools become available in any conversation. Ask the agent "what does the SOC know about acct-prod-01?" and it'll call `query_knowledge` for you.
+
 ## How it uses Splunk's AI stack
 
 | Splunk surface | How `ima` uses it |
@@ -96,7 +129,7 @@ After restart, open Splunk Web → Apps → **Institutional Memory Agent** for t
 | **Custom Search Commands** (Python SDK 3.0) | `\| imaannotate`, `\| imabuild`, `\| imaquery` — first-class SPL commands so any saved search, dashboard, or analyst can trigger IMA. |
 | **Foundation-Sec-1.1-8B** | The extraction prompt + JSON schema target the Splunk-hosted Foundation-Sec model. Local dev runs against an Ollama-hosted Llama-3.1-8B stand-in (no GPU on the dev box); swap to the Splunk-hosted endpoint via a one-line `.env` change. |
 | **Simple XML dashboards** | `ima_overview.xml` gives the SOC a single pane: contributor stats, disposition mix, knowledge table, and an interactive "ask the agent" input. |
-| **MCP Server** *(stretch)* | The knowledge graph can be exposed as MCP tools (`ima_query_knowledge`, `ima_record_annotation`) so SAIA Agent Mode, Claude Desktop, and other external agents can query institutional memory natively. |
+| **MCP Server** | A standalone Python MCP server in `ima/mcp_server.py` exposes four tools (`query_knowledge`, `record_annotation`, `list_recent_annotations`, `build_knowledge`). Run with `ima mcp serve` — Claude Desktop, SAIA Agent Mode, and any MCP client can query institutional memory natively. |
 
 See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design.
 

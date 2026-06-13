@@ -8,6 +8,7 @@ from .commands import auth as auth_cmd
 from .commands import demo as demo_cmd
 from .commands import knowledge as knowledge_cmd
 from .commands import kv as kv_cmd
+from .commands import mcp as mcp_cmd
 
 app = typer.Typer(
     name="ima",
@@ -20,6 +21,7 @@ app.add_typer(kv_cmd.app, name="kv")
 app.add_typer(alerts_cmd.app, name="alerts")
 app.add_typer(knowledge_cmd.app, name="knowledge")
 app.add_typer(demo_cmd.app, name="demo")
+app.add_typer(mcp_cmd.app, name="mcp")
 
 
 @app.command()

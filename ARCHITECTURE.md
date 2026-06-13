@@ -52,7 +52,8 @@ When a senior SOC analyst with six years of tenure leaves a team, they take with
 | Component | Location | Role |
 |---|---|---|
 | Python CLI | `ima/` package at repo root, installed in `.venv` | Dev iteration — analyst-side `annotate`/`watch`/`query`, batch `build` |
-| Splunk app | `splunk_app/ima/` (copied to `etc/apps/ima/`) | Submission artifact — custom search commands `\| imaannotate`, `\| imabuild`, `\| imaquery`, Simple XML dashboard |
+| Splunk app | `splunk_app/ima/` (copied to `etc/apps/ima/`) | Submission artifact — custom search commands `\| imaannotate`, `\| imabuild`, `\| imaquery`, plus `\| imaping` smoke-test, Simple XML dashboard, vendored splunklib at `bin/lib/` |
+| MCP server | `ima/mcp_server.py` (run via `ima mcp serve`) | Exposes the knowledge graph as MCP tools for Claude Desktop, SAIA Agent Mode, and any MCP-compatible AI client |
 | KV Store collections | Splunk instance, `ima` app namespace | Persistence — three collections declared in `collections.conf` |
 | LLM extractor | `ima/llm/foundation_sec.py` (CLI side) and `splunk_app/ima/bin/_ima_common.py` (app side) | Calls local Ollama by default; abstraction layer means swapping to Splunk-hosted Foundation-Sec is a config change |
 
@@ -91,7 +92,7 @@ This is the central architectural choice: capture is cheap, synthesis is batched
 | **Custom Search Commands** (Python SDK) | `\| imaannotate`, `\| imabuild`, `\| imaquery` make IMA scriptable from any Splunk search bar, dashboard, or saved search. |
 | **Simple XML dashboards** | `ima_overview.xml` gives analysts a single pane: contributor stats, disposition mix, knowledge table, and an interactive "ask the agent" panel. |
 | **Splunk Hosted Models (Foundation-Sec-1.1-8B)** | The extraction step is built against the Foundation-Sec prompt and JSON schema. Currently calls a local Ollama for dev (no GPU on the dev box); the abstraction switches to the Splunk Cloud Platform-hosted endpoint via a `.env` flag. |
-| **MCP Server** *(stretch)* | The knowledge graph can be exposed as MCP tools (`imaquery_knowledge`, `ima_record_annotation`) so external AI agents — SAIA Agent Mode, Claude Desktop, autonomous SOAR playbooks — can query institutional memory natively. |
+| **MCP Server** | Standalone Python MCP server (`ima/mcp_server.py`) exposes four tools — `query_knowledge`, `record_annotation`, `list_recent_annotations`, `build_knowledge` — over stdio (Claude Desktop) or streamable-HTTP (remote agents). Lets SAIA Agent Mode, Claude Desktop, and autonomous SOAR playbooks query and update institutional memory through a standardized protocol, no Splunkbase install required. |
 
 ## Why not a SOAR playbook?
 
