@@ -22,6 +22,10 @@ splunk_app/ima/bin/lib/**/*.pyc
 # Internal demo / planning notes — not for public repo
 DEMO.md
 
+# Dashboard export PDFs — local artifacts, not for repo
+*.pdf
+ima_overview-*.pdf
+
 # Internal notes / research files — not for public repo
 Splunk_Agentic_Ops_Judges.txt
 ps.txt
