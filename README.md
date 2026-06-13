@@ -46,12 +46,13 @@ The bootstrap script creates `.venv`, installs the CLI in editable mode, copies 
 
 ## Install the Splunk app
 
-The CLI is for development. The submission artifact is the **Splunk app** at `splunk_app/ima/`. Install it from an **Administrator** PowerShell:
+The CLI is for development. The submission artifact is the **Splunk app** at `splunk_app/ima/`. There's a helper script that handles the elevation, copy, and restart in one shot — open an **Administrator** PowerShell, `cd` into the repo, and run:
 
 ```powershell
-Copy-Item -Recurse -Force ".\splunk_app\ima" "C:\Program Files\Splunk\etc\apps\"
-& "C:\Program Files\Splunk\bin\splunk.exe" restart
+.\install_splunk_app.ps1
 ```
+
+(Manual equivalent if you prefer: `Copy-Item -Recurse -Force ".\splunk_app\ima" "C:\Program Files\Splunk\etc\apps\"; & "C:\Program Files\Splunk\bin\splunk.exe" restart`)
 
 After restart, open Splunk Web → Apps → **Institutional Memory Agent** for the dashboard, and try the custom search commands directly:
 
