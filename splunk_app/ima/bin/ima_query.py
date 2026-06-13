@@ -1,14 +1,20 @@
 #!/usr/bin/env python
-"""Custom search command: | ima_query question="what do we know about X?"
+"""Custom search command: | imaquery question="what do we know about X?"
 
-Generates rows from the institutional knowledge graph that match the question.
+Splunk's SPL parser rejects underscores in command names, so the stanza in
+commands.conf is `imaquery` even though this file is named `ima_query.py`.
+
 Usage in Splunk search bar:
-  | ima_query question="finance Monday"
-  | ima_query question="ciso travel"
+  | imaquery question="finance Monday"
 """
 from __future__ import annotations
 
+import os
 import sys
+
+_here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_here, "lib"))   # vendored splunklib
+sys.path.insert(0, _here)                         # sibling _ima_common
 
 from splunklib.searchcommands import (
     Configuration,
@@ -18,7 +24,7 @@ from splunklib.searchcommands import (
     validators,
 )
 
-from _ima_common import KV_KNOWLEDGE, kv_query, service_from_metadata
+from _ima_common import KV_KNOWLEDGE, kv_query
 
 
 @Configuration()
@@ -26,8 +32,7 @@ class ImaQueryCommand(GeneratingCommand):
     question = Option(require=True, validate=validators.Match("question", r".+"))
 
     def generate(self):
-        svc = service_from_metadata(self._metadata)
-        rows = kv_query(svc, KV_KNOWLEDGE)
+        rows = kv_query(self.service, KV_KNOWLEDGE)
         needle = self.question.lower()
         for r in rows:
             hay = " ".join(

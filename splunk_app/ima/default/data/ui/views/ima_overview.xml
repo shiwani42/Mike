@@ -76,7 +76,7 @@
       </input>
       <table>
         <search>
-          <query>| ima_query question="$ima_question$"
+          <query>| imaquery question="$ima_question$"
 | sort - confidence
 | table topic, summary, evidence_count, confidence, tags</query>
         </search>

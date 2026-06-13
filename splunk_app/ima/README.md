@@ -22,21 +22,21 @@ Captures SOC analyst reasoning at scale and turns it into a queryable institutio
 ## What's in the box
 
 - `default/collections.conf` — declares the three KV Store collections (`ima_annotations`, `ima_knowledge`, `ima_assets`). Splunk creates them automatically on startup if they don't exist.
-- `default/commands.conf` — registers three custom search commands:
-  - `| ima_annotate alert_id="..." disposition="..." reason="..." [asset=...] [analyst=...]` — record an analyst note
-  - `| ima_build` — cluster annotations + call local LLM (Ollama) for structured extraction
-  - `| ima_query question="..."` — retrieve matching institutional knowledge
+- `default/commands.conf` — registers three custom search commands (Splunk SPL parser rejects underscores in command names, so no `_` here):
+  - `| imaannotate alert_id="..." disposition="..." reason="..." [asset=...] [analyst=...]` — record an analyst note
+  - `| imabuild` — cluster annotations + call local LLM (Ollama) for structured extraction
+  - `| imaquery question="..."` — retrieve matching institutional knowledge
 - `bin/_ima_common.py` — shared helpers (KV Store wrappers, LLM client). Talks to local Ollama at `http://localhost:11434` by default; override via env vars `IMA_OLLAMA_ENDPOINT` / `IMA_OLLAMA_MODEL`.
 - `default/data/ui/views/ima_overview.xml` — Simple XML dashboard with the knowledge graph, contributor stats, and an interactive "ask the agent" panel.
 
 ## Demo flow inside Splunk Web
 
 ```spl
-| ima_annotate alert_id="NOTABLE-2024-09-21" disposition="false_positive" reason="Finance batch job again, Monday 6am" asset="acct-prod-01" event_type="failed_auth_burst"
+| imaannotate alert_id="NOTABLE-2024-09-21" disposition="false_positive" reason="Finance batch job again, Monday 6am" asset="acct-prod-01" event_type="failed_auth_burst"
 
-| ima_build
+| imabuild
 
-| ima_query question="finance"
+| imaquery question="finance"
 ```
 
 ## Hackathon submission

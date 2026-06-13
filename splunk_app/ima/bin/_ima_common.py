@@ -12,27 +12,12 @@ import urllib.error
 from datetime import datetime, timezone
 from typing import Any
 
-import splunklib.client as splunk_client
-
 OLLAMA_ENDPOINT = os.environ.get("IMA_OLLAMA_ENDPOINT", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("IMA_OLLAMA_MODEL", "llama3.1:8b-instruct-q4_K_M")
 
 KV_ANNOTATIONS = "ima_annotations"
 KV_KNOWLEDGE = "ima_knowledge"
 KV_ASSETS = "ima_assets"
-
-
-def service_from_metadata(meta) -> splunk_client.Service:
-    """Build a splunklib Service from a CSC metadata object."""
-    info = meta.searchinfo
-    return splunk_client.connect(
-        host=info.splunkd_uri.split("://")[1].split(":")[0],
-        port=int(info.splunkd_uri.rsplit(":", 1)[1]),
-        scheme=info.splunkd_uri.split("://")[0],
-        token=info.session_key,
-        app="ima",
-        owner="nobody",
-    )
 
 
 def kv_query(svc, name: str, query_obj: dict[str, Any] | None = None) -> list[dict]:

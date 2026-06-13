@@ -1,16 +1,22 @@
 #!/usr/bin/env python
-"""Custom search command: | ima_build
+"""Custom search command: | imabuild
 
 Clusters annotations by (event_type, disposition), calls the local LLM
 (Ollama by default) on each cluster, and writes structured knowledge entries
-into the ima_knowledge collection.
+into the ima_knowledge collection. Stanza is `imabuild` (no underscore).
+
 Usage in Splunk search bar:
-  | ima_build
+  | imabuild
 """
 from __future__ import annotations
 
+import os
 import sys
 from collections import defaultdict
+
+_here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_here, "lib"))
+sys.path.insert(0, _here)
 
 from splunklib.searchcommands import Configuration, GeneratingCommand, dispatch
 
@@ -21,17 +27,16 @@ from _ima_common import (
     kv_query,
     llm_extract,
     now_iso,
-    service_from_metadata,
 )
 
 
 @Configuration()
 class ImaBuildCommand(GeneratingCommand):
     def generate(self):
-        svc = service_from_metadata(self._metadata)
+        svc = self.service
         annotations = kv_query(svc, KV_ANNOTATIONS)
         if not annotations:
-            yield {"_time": now_iso(), "status": "no_annotations", "message": "Run ima_annotate first."}
+            yield {"_time": now_iso(), "status": "no_annotations", "message": "Run imaannotate first."}
             return
 
         buckets: dict[tuple[str, str], list[dict]] = defaultdict(list)

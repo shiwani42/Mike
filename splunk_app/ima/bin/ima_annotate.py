@@ -1,23 +1,29 @@
 #!/usr/bin/env python
-"""Custom search command: | ima_annotate ...
+"""Custom search command: | imaannotate ...
 
 Records an analyst annotation into the ima_annotations KV Store collection.
+Stanza is `imaannotate` (no underscore, per Splunk's SPL parser rules).
+
 Usage in Splunk search bar:
-  | ima_annotate alert_id="NOTABLE-1234" disposition="false_positive" reason="Finance Monday batch" asset="acct-prod-01"
+  | imaannotate alert_id="NOTABLE-1234" disposition="false_positive" reason="Finance Monday batch" asset="acct-prod-01"
 """
 from __future__ import annotations
 
+import os
 import sys
+
+_here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_here, "lib"))
+sys.path.insert(0, _here)
 
 from splunklib.searchcommands import (
     Configuration,
     GeneratingCommand,
     Option,
     dispatch,
-    validators,
 )
 
-from _ima_common import KV_ANNOTATIONS, kv_insert, now_iso, service_from_metadata
+from _ima_common import KV_ANNOTATIONS, kv_insert, now_iso
 
 
 @Configuration()
@@ -31,7 +37,6 @@ class ImaAnnotateCommand(GeneratingCommand):
     source_ip = Option(require=False, default="")
 
     def generate(self):
-        svc = service_from_metadata(self._metadata)
         record = {
             "alert_id": self.alert_id,
             "event_type": self.event_type,
@@ -42,7 +47,7 @@ class ImaAnnotateCommand(GeneratingCommand):
             "asset": self.asset,
             "created_at": now_iso(),
         }
-        key = kv_insert(svc, KV_ANNOTATIONS, record)
+        key = kv_insert(self.service, KV_ANNOTATIONS, record)
         yield {
             "_time": record["created_at"],
             "status": "saved",

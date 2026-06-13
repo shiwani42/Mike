@@ -14,9 +14,9 @@ When a senior SOC analyst with six years of tenure leaves a team, they take with
         alert closes / fires        │                     │  "what do we know about X?"
         → 10-sec annotation         ▼                     ▼
                               ┌─────────────────┐   ┌─────────────────────┐
-                              │ ima alerts watch│   │ | ima_query         │
+                              │ ima alerts watch│   │ | imaquery         │
                               │ (CLI prompt)    │   │  (custom search cmd)│
-                              │ | ima_annotate  │   │ ima knowledge query │
+                              │ | imaannotate  │   │ ima knowledge query │
                               │  (search cmd)   │   │  (CLI)              │
                               └────────┬────────┘   └──────────▲──────────┘
                                        │                       │
@@ -29,7 +29,7 @@ When a senior SOC analyst with six years of tenure leaves a team, they take with
                   └────────────────────────▲─────────────────┘
                                            │
                             ┌──────────────┴───────────────┐
-                            │  | ima_build  /  knowledge   │
+                            │  | imabuild  /  knowledge   │
                             │   build (CLI)                │
                             │                              │
                             │   cluster by (event_type,    │
@@ -52,7 +52,7 @@ When a senior SOC analyst with six years of tenure leaves a team, they take with
 | Component | Location | Role |
 |---|---|---|
 | Python CLI | `ima/` package at repo root, installed in `.venv` | Dev iteration — analyst-side `annotate`/`watch`/`query`, batch `build` |
-| Splunk app | `splunk_app/ima/` (copied to `etc/apps/ima/`) | Submission artifact — custom search commands `\| ima_annotate`, `\| ima_build`, `\| ima_query`, Simple XML dashboard |
+| Splunk app | `splunk_app/ima/` (copied to `etc/apps/ima/`) | Submission artifact — custom search commands `\| imaannotate`, `\| imabuild`, `\| imaquery`, Simple XML dashboard |
 | KV Store collections | Splunk instance, `ima` app namespace | Persistence — three collections declared in `collections.conf` |
 | LLM extractor | `ima/llm/foundation_sec.py` (CLI side) and `splunk_app/ima/bin/_ima_common.py` (app side) | Calls local Ollama by default; abstraction layer means swapping to Splunk-hosted Foundation-Sec is a config change |
 
@@ -77,8 +77,8 @@ asset, owner, notes, behavioral_exceptions, updated_at
 
 The LLM doesn't need to fire on every alert closure — that would be expensive and add latency to the analyst's loop. Instead:
 
-1. Analysts annotate freely (CLI prompt or `\| ima_annotate`) — cheap, instant, persisted to KV Store.
-2. `\| ima_build` (or `ima knowledge build` from the CLI) runs on demand or on a schedule (`cron`/saved search). It groups annotations by `(event_type, disposition)`, sends each cluster through Foundation-Sec for structured extraction, and writes one knowledge entry per cluster.
+1. Analysts annotate freely (CLI prompt or `\| imaannotate`) — cheap, instant, persisted to KV Store.
+2. `\| imabuild` (or `ima knowledge build` from the CLI) runs on demand or on a schedule (`cron`/saved search). It groups annotations by `(event_type, disposition)`, sends each cluster through Foundation-Sec for structured extraction, and writes one knowledge entry per cluster.
 3. Confidence emerges from cluster size: 3+ pieces of evidence → confidence ~1.0 (stable institutional pattern); 1 piece → confidence ~0 (one-off observation, not yet institutional knowledge).
 
 This is the central architectural choice: capture is cheap, synthesis is batched.
@@ -88,10 +88,10 @@ This is the central architectural choice: capture is cheap, synthesis is batched
 | Surface | How IMA uses it |
 |---|---|
 | **Splunk KV Store** | Three collections (`ima_annotations`, `ima_knowledge`, `ima_assets`) persist the knowledge graph at the Splunk instance level. |
-| **Custom Search Commands** (Python SDK) | `\| ima_annotate`, `\| ima_build`, `\| ima_query` make IMA scriptable from any Splunk search bar, dashboard, or saved search. |
+| **Custom Search Commands** (Python SDK) | `\| imaannotate`, `\| imabuild`, `\| imaquery` make IMA scriptable from any Splunk search bar, dashboard, or saved search. |
 | **Simple XML dashboards** | `ima_overview.xml` gives analysts a single pane: contributor stats, disposition mix, knowledge table, and an interactive "ask the agent" panel. |
 | **Splunk Hosted Models (Foundation-Sec-1.1-8B)** | The extraction step is built against the Foundation-Sec prompt and JSON schema. Currently calls a local Ollama for dev (no GPU on the dev box); the abstraction switches to the Splunk Cloud Platform-hosted endpoint via a `.env` flag. |
-| **MCP Server** *(stretch)* | The knowledge graph can be exposed as MCP tools (`ima_query_knowledge`, `ima_record_annotation`) so external AI agents — SAIA Agent Mode, Claude Desktop, autonomous SOAR playbooks — can query institutional memory natively. |
+| **MCP Server** *(stretch)* | The knowledge graph can be exposed as MCP tools (`imaquery_knowledge`, `ima_record_annotation`) so external AI agents — SAIA Agent Mode, Claude Desktop, autonomous SOAR playbooks — can query institutional memory natively. |
 
 ## Why not a SOAR playbook?
 

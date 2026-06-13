@@ -12,6 +12,16 @@ build/
 .idea/
 .vscode/
 
+# Developer scratch / test scripts (not for repo)
+_test_*.py
+
+# Vendored splunklib bytecode cache (the .py sources go to repo, bytecode doesn't)
+splunk_app/ima/bin/lib/**/__pycache__/
+splunk_app/ima/bin/lib/**/*.pyc
+
+# Internal demo / planning notes — not for public repo
+DEMO.md
+
 # Internal notes / research files — not for public repo
 Splunk_Agentic_Ops_Judges.txt
 ps.txt

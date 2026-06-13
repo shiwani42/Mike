@@ -13,12 +13,12 @@ analyst closes alert     →   ima asks "why?" (10-second prompt)
                               ↓
                           annotation lands in KV Store (ima_annotations)
                               ↓
-        | ima_build  →   clusters by (event_type, disposition)
+        | imabuild  →   clusters by (event_type, disposition)
                           and calls Foundation-Sec-1.1-8B
                               ↓
                           structured knowledge entry in ima_knowledge
                               ↓
-new analyst asks         →   | ima_query question="finance Monday"
+new analyst asks         →   | imaquery question="finance Monday"
 "what do we know         →   returns: "Finance batch job triggers failed-auth
 about X?"                       bursts every Monday 6am."  conf=1.0  ×3 evidence
 ```
@@ -56,13 +56,13 @@ Copy-Item -Recurse -Force ".\splunk_app\ima" "C:\Program Files\Splunk\etc\apps\"
 After restart, open Splunk Web → Apps → **Institutional Memory Agent** for the dashboard, and try the custom search commands directly:
 
 ```spl
-| ima_query question="finance"
+| imaquery question="finance"
 
-| ima_annotate alert_id="NOTABLE-2024-09-21" disposition="false_positive" `
+| imaannotate alert_id="NOTABLE-2024-09-21" disposition="false_positive" `
               reason="Finance batch job again, Monday 6am" `
               asset="acct-prod-01" event_type="failed_auth_burst"
 
-| ima_build
+| imabuild
 ```
 
 ## Repo layout
@@ -93,7 +93,7 @@ After restart, open Splunk Web → Apps → **Institutional Memory Agent** for t
 | Splunk surface | How `ima` uses it |
 |---|---|
 | **KV Store** | Three collections — `ima_annotations`, `ima_knowledge`, `ima_assets` — declared in `splunk_app/ima/default/collections.conf` and used as the persistence layer for the knowledge graph. |
-| **Custom Search Commands** (Python SDK 3.0) | `\| ima_annotate`, `\| ima_build`, `\| ima_query` — first-class SPL commands so any saved search, dashboard, or analyst can trigger IMA. |
+| **Custom Search Commands** (Python SDK 3.0) | `\| imaannotate`, `\| imabuild`, `\| imaquery` — first-class SPL commands so any saved search, dashboard, or analyst can trigger IMA. |
 | **Foundation-Sec-1.1-8B** | The extraction prompt + JSON schema target the Splunk-hosted Foundation-Sec model. Local dev runs against an Ollama-hosted Llama-3.1-8B stand-in (no GPU on the dev box); swap to the Splunk-hosted endpoint via a one-line `.env` change. |
 | **Simple XML dashboards** | `ima_overview.xml` gives the SOC a single pane: contributor stats, disposition mix, knowledge table, and an interactive "ask the agent" input. |
 | **MCP Server** *(stretch)* | The knowledge graph can be exposed as MCP tools (`ima_query_knowledge`, `ima_record_annotation`) so SAIA Agent Mode, Claude Desktop, and other external agents can query institutional memory natively. |
