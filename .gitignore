@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.idea/
+.vscode/
+
+# Internal notes / research files — not for public repo
+Splunk_Agentic_Ops_Judges.txt
+ps.txt
+idea.txt
+Splunk_AI_research
+splunk_research_2.0.txt
+splunk_api_cli.txt

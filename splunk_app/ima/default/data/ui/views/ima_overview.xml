@@ -1,0 +1,86 @@
+<dashboard version="1.1" theme="dark">
+  <label>Institutional Memory Agent</label>
+  <description>Analyst reasoning, captured at scale and turned into a queryable knowledge graph.</description>
+
+  <row>
+    <panel>
+      <title>Annotations captured</title>
+      <single>
+        <search>
+          <query>| inputlookup ima_annotations | stats count</query>
+        </search>
+        <option name="useColors">1</option>
+        <option name="rangeColors">["0x53a051","0x53a051"]</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Knowledge entries built</title>
+      <single>
+        <search>
+          <query>| inputlookup ima_knowledge | stats count</query>
+        </search>
+      </single>
+    </panel>
+    <panel>
+      <title>Distinct analysts contributing</title>
+      <single>
+        <search>
+          <query>| inputlookup ima_annotations | stats dc(analyst)</query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Institutional knowledge — by confidence</title>
+      <table>
+        <search>
+          <query>| inputlookup ima_knowledge
+| sort - confidence, - evidence_count
+| table topic, summary, evidence_count, confidence, tags, updated_at</query>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top contributing analysts</title>
+      <chart>
+        <search>
+          <query>| inputlookup ima_annotations | stats count by analyst | sort - count</query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Disposition mix</title>
+      <chart>
+        <search>
+          <query>| inputlookup ima_annotations | stats count by disposition</query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Ask the agent: what do we know about...</title>
+      <input type="text" token="ima_question" searchWhenChanged="true">
+        <label>Question</label>
+        <default>finance</default>
+      </input>
+      <table>
+        <search>
+          <query>| ima_query question="$ima_question$"
+| sort - confidence
+| table topic, summary, evidence_count, confidence, tags</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+</dashboard>

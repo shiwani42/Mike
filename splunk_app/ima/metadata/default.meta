@@ -1,0 +1,21 @@
+[]
+access = read : [ * ], write : [ admin, sc_admin, power ]
+export = system
+
+[collections]
+export = system
+
+[views]
+export = system
+
+[nav]
+export = system
+
+[commands]
+export = system
+
+[transforms]
+export = system
+
+[lookups]
+export = system
