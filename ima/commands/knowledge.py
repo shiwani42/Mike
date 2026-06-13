@@ -10,7 +10,7 @@ from rich.table import Table
 
 from .. import kvstore
 from ..config import load
-from ..llm.foundation_sec import extract
+from ..llm.foundation_sec import cosine_similarity, embed, extract
 
 app = typer.Typer(help="Build and query the institutional knowledge graph.")
 console = Console()
@@ -47,25 +47,70 @@ def build() -> None:
     console.print(f"[green]Built[/green] {written} knowledge entries from {len(annotations)} annotations.")
 
 
+def _row_text(r: dict) -> str:
+    return " ".join(str(r.get(k, "")) for k in ("topic", "summary", "tags"))
+
+
+def _semantic_rank(question: str, rows: list[dict], min_sim: float = 0.4) -> list[tuple[float, dict]]:
+    """Embed the question + each row, return (similarity, row) pairs sorted desc.
+    Returns [] if embedding is unavailable.
+    """
+    q_emb = embed(question)
+    if q_emb is None:
+        return []
+    scored: list[tuple[float, dict]] = []
+    for r in rows:
+        r_emb = embed(_row_text(r))
+        if r_emb is None:
+            continue
+        sim = cosine_similarity(q_emb, r_emb)
+        if sim >= min_sim:
+            scored.append((sim, r))
+    scored.sort(key=lambda t: t[0], reverse=True)
+    return scored
+
+
+def _substring_rank(question: str, rows: list[dict]) -> list[tuple[float, dict]]:
+    needle = question.lower()
+    return [(1.0, r) for r in rows if needle in _row_text(r).lower()]
+
+
 @app.command("query")
-def query(question: str = typer.Argument(..., help="Free-text question for the agent.")) -> None:
-    """Naive substring lookup across the knowledge collection (LLM synthesis comes later)."""
+def query(
+    question: str = typer.Argument(..., help="Free-text question for the agent."),
+    semantic: bool = typer.Option(True, "--semantic/--substring", help="Use embeddings (default) or substring match."),
+    top_k: int = typer.Option(5, help="Max results to return."),
+) -> None:
+    """Ask the institutional knowledge graph.
+
+    Default mode is semantic (embeddings via Ollama nomic-embed-text). Falls back
+    to substring match if the embedding model isn't reachable.
+    """
     s = load()
     rows = kvstore.query(s.kv_knowledge)
-    needle = question.lower()
-    matches = [
-        r for r in rows
-        if needle in (r.get("topic", "") + " " + r.get("summary", "") + " " + r.get("tags", "")).lower()
-    ]
-    if not matches:
-        console.print("[yellow]No matching institutional knowledge yet.[/yellow]")
+
+    method = "semantic"
+    scored: list[tuple[float, dict]] = []
+    if semantic:
+        scored = _semantic_rank(question, rows)
+        if not scored:
+            method = "substring (semantic unavailable)"
+            scored = _substring_rank(question, rows)
+    else:
+        method = "substring"
+        scored = _substring_rank(question, rows)
+
+    if not scored:
+        console.print(f"[yellow]No matching institutional knowledge[/yellow] (method: {method}).")
         return
-    table = Table("topic", "evidence", "confidence", "summary")
-    for r in matches:
+
+    table = Table("sim", "topic", "evidence", "confidence", "summary")
+    for sim, r in scored[:top_k]:
         table.add_row(
+            f"{sim:.2f}",
             str(r.get("topic", "")),
             str(r.get("evidence_count", "")),
             f"{float(r.get('confidence', 0)):.2f}",
             str(r.get("summary", ""))[:120],
         )
-    console.print(Panel.fit(table, title=f"Knowledge matching: {question!r}"))
+    console.print(Panel.fit(table, title=f"Knowledge matching: {question!r}  [{method}]"))

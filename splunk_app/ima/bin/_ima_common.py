@@ -14,6 +14,7 @@ from typing import Any
 
 OLLAMA_ENDPOINT = os.environ.get("IMA_OLLAMA_ENDPOINT", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("IMA_OLLAMA_MODEL", "llama3.1:8b-instruct-q4_K_M")
+OLLAMA_EMBED_MODEL = os.environ.get("IMA_OLLAMA_EMBED_MODEL", "nomic-embed-text")
 
 KV_ANNOTATIONS = "ima_annotations"
 KV_KNOWLEDGE = "ima_knowledge"
@@ -34,16 +35,32 @@ def kv_insert(svc, name: str, record: dict[str, Any]) -> str:
 
 
 SYSTEM_PROMPT = (
-    "You are a security-knowledge extractor for a SOC team. Given one or more "
-    "analyst notes about alert closures, extract the institutional knowledge "
-    "they contain.\n\n"
+    "You are a security-knowledge extractor for a SOC team. You will receive "
+    "one or more analyst notes about why an alert was closed a certain way. "
+    "Your job is to extract the UNDERLYING INSTITUTIONAL PATTERN -- never quote "
+    "or copy analyst phrasing verbatim, always rewrite as a generalized pattern.\n"
+    "\n"
     "Output ONLY a JSON object with these exact keys:\n"
-    "- asset (string or null)\n"
-    "- behavior_pattern (string or null): one short sentence summarising the "
-    "  institutional pattern\n"
-    "- environmental_quirk (string or null)\n"
-    "- tags (list of short strings)\n"
-    "- confidence (number between 0 and 1)\n\n"
+    "- asset (string or null): the affected entity (host, subnet, user, asset class)\n"
+    "- behavior_pattern (string): ONE compressed sentence, max 18 words.\n"
+    "- environmental_quirk (string or null): if this is an environmental exception\n"
+    "  (scheduled job, known traveler, sanctioned scanner, expected behavior),\n"
+    "  describe it in max 12 words. Otherwise null.\n"
+    "- tags (list of 2 to 5 short snake_case strings): pick from categories like\n"
+    "  scheduled_job, known_traveler, sanctioned_pentest, approved_scanner,\n"
+    "  real_threat, c2_traffic, ir_invoked, tune_rule, suppress.\n"
+    "- confidence (number 0..1):\n"
+    "    * 3+ independent notes agree -> 0.90-1.00\n"
+    "    * 2 notes agree              -> 0.65-0.90\n"
+    "    * 1 observation              -> 0.10-0.35 (not yet a pattern)\n"
+    "\n"
+    "Example GOOD compression:\n"
+    "  Notes: \"Cobalt Strike beacon detected, C2 to 185.x.x.x. IR-CS-01 invoked.\"\n"
+    "  -> behavior_pattern: \"Cobalt Strike C2 beacons require immediate endpoint\n"
+    "                       isolation under playbook IR-CS-01.\"\n"
+    "     tags: [\"c2_traffic\", \"cobalt_strike\", \"real_threat\", \"ir_invoked\"]\n"
+    "     confidence: 0.20\n"
+    "\n"
     "No prose, no markdown fences. JSON only."
 )
 
@@ -82,3 +99,29 @@ def llm_extract(text: str) -> dict[str, Any]:
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def embed(text: str):
+    """Return an embedding vector for text via Ollama. None on failure."""
+    payload = json.dumps({"model": OLLAMA_EMBED_MODEL, "prompt": text}).encode("utf-8")
+    req = urllib.request.Request(
+        f"{OLLAMA_ENDPOINT.rstrip('/')}/api/embeddings",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310
+            vec = json.loads(resp.read().decode("utf-8")).get("embedding")
+        return vec if isinstance(vec, list) and vec else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def cosine_similarity(a, b) -> float:
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    num = sum(x * y for x, y in zip(a, b))
+    da = sum(x * x for x in a) ** 0.5
+    db = sum(x * x for x in b) ** 0.5
+    return num / (da * db) if da and db else 0.0

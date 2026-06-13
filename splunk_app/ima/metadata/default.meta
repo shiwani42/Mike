@@ -19,3 +19,9 @@ export = system
 
 [lookups]
 export = system
+
+[modular_inputs]
+export = system
+
+[ima_autobuild]
+export = system

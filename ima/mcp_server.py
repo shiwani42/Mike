@@ -18,7 +18,7 @@ from mcp.server.fastmcp import FastMCP
 
 from . import kvstore
 from .config import load
-from .llm.foundation_sec import extract
+from .llm.foundation_sec import cosine_similarity, embed, extract
 
 mcp = FastMCP(
     name="ima",
@@ -34,41 +34,62 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-def query_knowledge(question: str) -> list[dict[str, Any]]:
+def query_knowledge(question: str, top_k: int = 5) -> list[dict[str, Any]]:
     """Search the institutional knowledge graph for entries matching the question.
 
-    Returns clusters of analyst reasoning ranked by confidence and evidence count.
-    Use this before triaging a fresh alert to see whether the SOC has already
+    Uses semantic similarity (Ollama nomic-embed-text by default), with a
+    substring fallback if the embedding model is unavailable. Returns clusters
+    of analyst reasoning ranked by relevance, confidence, and evidence count.
+
+    Use this BEFORE triaging a fresh alert to see whether the SOC has already
     encountered the same pattern (scheduled batch jobs, sanctioned pentests,
     known traveling executives, etc.).
 
     Args:
         question: free-text question, e.g. "finance Monday auth failures",
-                  "ciso international travel", "RedTeam pentest".
+                  "executive travel from abroad", "RedTeam pentest".
+        top_k: max number of entries to return (default 5).
 
     Returns:
-        List of knowledge entries, each with topic, summary, evidence_count,
-        confidence (0..1), tags. Empty list if nothing matches yet.
+        List of knowledge entries with: similarity (0..1), topic, summary,
+        evidence_count, confidence, tags, search_method ("semantic"|"substring").
     """
     s = load()
     rows = kvstore.query(s.kv_knowledge)
-    needle = question.lower()
-    matches = []
-    for r in rows:
-        hay = " ".join(
-            str(r.get(k, "")) for k in ("topic", "summary", "tags")
-        ).lower()
-        if needle in hay:
-            matches.append({
-                "topic": r.get("topic", ""),
-                "summary": r.get("summary", ""),
-                "evidence_count": int(r.get("evidence_count", 0) or 0),
-                "confidence": float(r.get("confidence", 0) or 0),
-                "tags": r.get("tags", ""),
-                "updated_at": r.get("updated_at", ""),
-            })
-    matches.sort(key=lambda r: (r["confidence"], r["evidence_count"]), reverse=True)
-    return matches
+
+    def _text(r: dict[str, Any]) -> str:
+        return " ".join(str(r.get(k, "")) for k in ("topic", "summary", "tags"))
+
+    q_emb = embed(question)
+    method = "semantic" if q_emb is not None else "substring"
+    scored: list[tuple[float, dict[str, Any]]] = []
+
+    if q_emb is not None:
+        for r in rows:
+            r_emb = embed(_text(r))
+            if r_emb is None:
+                continue
+            sim = cosine_similarity(q_emb, r_emb)
+            if sim >= 0.4:
+                scored.append((sim, r))
+    else:
+        needle = question.lower()
+        scored = [(1.0, r) for r in rows if needle in _text(r).lower()]
+
+    scored.sort(key=lambda t: (t[0], float(t[1].get("confidence", 0) or 0)), reverse=True)
+    return [
+        {
+            "similarity": round(sim, 3),
+            "topic": r.get("topic", ""),
+            "summary": r.get("summary", ""),
+            "evidence_count": int(r.get("evidence_count", 0) or 0),
+            "confidence": float(r.get("confidence", 0) or 0),
+            "tags": r.get("tags", ""),
+            "updated_at": r.get("updated_at", ""),
+            "search_method": method,
+        }
+        for sim, r in scored[:top_k]
+    ]
 
 
 @mcp.tool()

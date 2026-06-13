@@ -29,6 +29,16 @@ Captures SOC analyst reasoning at scale and turns it into a queryable institutio
 - `bin/_ima_common.py` — shared helpers (KV Store wrappers, LLM client). Talks to local Ollama at `http://localhost:11434` by default; override via env vars `IMA_OLLAMA_ENDPOINT` / `IMA_OLLAMA_MODEL`.
 - `default/data/ui/views/ima_overview.xml` — Simple XML dashboard with the knowledge graph, contributor stats, and an interactive "ask the agent" panel.
 
+## Autonomous knowledge-graph rebuild
+
+The app ships a Modular Input (`bin/ima_autobuild.py`) that runs the cluster + LLM extraction loop on a configurable interval (default 5 min). When enabled, the institutional knowledge graph stays in sync with annotations without any manual `| imabuild` invocation — that's the "agentic ops" loop running inside Splunk.
+
+Enable it from Splunk Web → **Settings → Data inputs → IMA Autobuild → New** (or edit the default stanza and flip `disabled = false`). Status events land in `index=_internal sourcetype=ima:autobuild`:
+
+```spl
+index=_internal sourcetype=ima:autobuild | head 10
+```
+
 ## Demo flow inside Splunk Web
 
 ```spl

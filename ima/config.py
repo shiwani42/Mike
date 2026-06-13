@@ -35,6 +35,7 @@ class Settings:
     llm_provider: str
     ollama_endpoint: str
     ollama_model: str
+    ollama_embed_model: str
 
     @property
     def base_url(self) -> str:
@@ -60,4 +61,5 @@ def load() -> Settings:
         llm_provider=os.getenv("LLM_PROVIDER", "ollama").lower(),
         ollama_endpoint=os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434"),
         ollama_model=os.getenv("OLLAMA_MODEL", "llama3.1:8b-instruct-q4_K_M"),
+        ollama_embed_model=os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
     )
