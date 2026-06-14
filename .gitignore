@@ -16,11 +16,14 @@ build/
 _test_*.py
 _verify_*.py
 
+# Claude Code project-scope MCP config (paths are user-specific)
+.mcp.json
+
 # Vendored splunklib bytecode cache (the .py sources go to repo, bytecode doesn't)
 splunk_app/ima/bin/lib/**/__pycache__/
 splunk_app/ima/bin/lib/**/*.pyc
 
-# Internal demo / planning notes — not for public repo
+# Internal demo / planning notes - not for public repo
 DEMO.md
 
 # Dashboard export PDFs — local artifacts, not for repo
